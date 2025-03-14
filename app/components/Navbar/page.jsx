@@ -1,22 +1,34 @@
 "use client";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Car, Bike,AlignRight } from "lucide-react";
+import { Car, Bike, AlignRight, X } from "lucide-react";
 
 export function Navbar() {
   const router = useRouter();
   const [location, setLocation] = useState("");
+  const [userName, setUserName] = useState(null);
+  const [profileImg, setProfileImg] = useState(null);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLocationChange = (e) => {
-    setLocation(e.target.value);
-  };
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      const parsedUser = JSON.parse(user);
+      setUserName(parsedUser.name);
+      setProfileImg(parsedUser.profileImg); // Add profileImg to localStorage when user logs in
+    }
+  }, []);
+
+  const handleLocationChange = (e) => setLocation(e.target.value);
+
+  const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "?");
 
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo and Navigation */}
+          {/* Logo */}
           <div
             className="flex items-center cursor-pointer"
             onClick={() => router.push("/")}
@@ -30,20 +42,22 @@ export function Navbar() {
             </span>
           </div>
 
-          {/* Sign In Button */}
-          <div className="flex items-center space-x-4">
-            <div className="relative flex items-center mt- ml-4">
-              <input
-                type="text"
-                placeholder="Search location"
-                value={location}
-                onChange={handleLocationChange}
-                className="p-2 rounded-lg text-black w-full md:w-64 mr-2 pl-10 border border-black"
-              />
-              <div className="absolute left-2 text-gray-500">📍</div>
-            </div>
-            <div className="hidden md:flex space-x-6 ">
-              <Link href="#vehicle" className="hover:text-gray-300" >
+          {/* Search Bar */}
+            <div className="flex items-center justify-between">
+          <div className="relative flex items-center mt- ml-4">
+            <input
+              type="text"
+              placeholder="Search location"
+              value={location}
+              onChange={handleLocationChange}
+              className="p-2 rounded-lg text-black w-full md:w-64 mr-2 pl-10 border border-black"
+            />
+            <div className="absolute left-2 text-gray-500">📍</div>
+          </div>
+
+          {/* Desktop Nav Links */}
+            <div className="hidden md:flex space-x-6 md:ml-5">
+              <Link href="#vehicle" className="hover:text-gray-300">
                 Vehicle
               </Link>
               <Link href="#about" className="hover:text-gray-300">
@@ -53,13 +67,98 @@ export function Navbar() {
                 Contact
               </Link>
             </div>
-            <AlignRight className="md:hidden"/>
-            <button
-              className="btn btn-primary hidden md:block "
-              onClick={() => router.push("/SignUp")}
-            >
-              Sign In
+
+            {/* Profile / Sign In - Desktop */}
+            <div className="hidden md:block md:ml-4">
+              {userName ? (
+                <div
+                  className="flex items-center space-x-2 cursor-pointer"
+                  onClick={() => router.push("/profile")}
+                >
+                  {profileImg ? (
+                    <img
+                      src={profileImg}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold uppercase">
+                      {getInitial(userName)}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  className="btn btn-primary hidden md:block"
+                  onClick={() => router.push("/SignUp")}
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
+          </div>
+          {/* Mobile Menu Button */}
+          <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
+            <AlignRight />
+          </button>
+        </div>
+      </div>
+
+      {/* Sidebar Drawer for Mobile */}
+      <div
+        className={`fixed inset-0 bg-black bg-opacity-50 z-50 transform transition-transform duration-300 ${
+          isSidebarOpen ? "translate-x-0" : "translate-x-full"
+        } md:hidden`}
+        onClick={() => setSidebarOpen(false)}
+      >
+        <div
+          className="bg-white w-64 h-full p-5 shadow-lg absolute top-0 right-0"
+          onClick={(e) => e.stopPropagation()} // Prevent clicks inside sidebar from closing it
+        >
+          {/* Close Button */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold">Menu</h2>
+            <button onClick={() => setSidebarOpen(false)}>
+              <X />
             </button>
+          </div>
+
+          {/* Profile Section */}
+          <div className="flex items-center space-x-3 mb-6">
+            {profileImg ? (
+              <img
+                src={profileImg}
+                alt="Profile"
+                className="w-12 h-12 rounded-full object-cover border border-gray-300"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold uppercase">
+                {getInitial(userName)}
+              </div>
+            )}
+            <span className="text-lg font-medium">{userName || "Guest"}</span>
+          </div>
+
+          {/* Links */}
+          <div className="space-y-4">
+            <Link
+              href="#vehicle"
+              className="block text-gray-800 hover:text-primary-500"
+            >
+              Vehicle
+            </Link>
+            <Link
+              href="#about"
+              className="block text-gray-800 hover:text-primary-500"
+            >
+              About Us
+            </Link>
+            <Link
+              href="#footer"
+              className="block text-gray-800 hover:text-primary-500"
+            >
+              Contact
+            </Link>
           </div>
         </div>
       </div>

@@ -13,7 +13,7 @@ export default function UserForm() {
     console.log('Form Submitted:', data);
 
     // Store form data in localStorage
-    localStorage.setItem('userFormData', JSON.stringify(data));
+    localStorage.setItem('user', JSON.stringify(data));
 
     // Show success message
     setSubmitted(true);
