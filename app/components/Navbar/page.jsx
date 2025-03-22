@@ -1,11 +1,22 @@
 "use client";
 import Link from "next/link";
+import { Search } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Car, Bike, AlignRight, X } from "lucide-react";
 
+const locations = [
+  "Delhi",
+  "Mumbai",
+  "Bangalore",
+  "Kolkata",
+  "Chennai",
+  "Pune",
+  "Hyderabad",
+];
 export function Navbar() {
   const router = useRouter();
+  const [filteredLocations, setFilteredLocations] = useState([]);
   const [location, setLocation] = useState("");
   const [userName, setUserName] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
@@ -20,9 +31,27 @@ export function Navbar() {
     }
   }, []);
 
-  const handleLocationChange = (e) => setLocation(e.target.value);
+  // const handleLocationChange = (e) => setLocation(e.target.value);
+  const handleLocationChange = (e) => {
+    const value = e.target.value;
+    setLocation(value);
 
+    // Filter locations based on input
+    if (value.trim() === "") {
+      setFilteredLocations([]);
+    } else {
+      const filtered = locations.filter((loc) =>
+        loc.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredLocations(filtered);
+    }
+  };
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "?");
+
+  const handleSelectLocation = (loc) => {
+    setLocation(loc); // Set selected location
+    setFilteredLocations([]); // Hide suggestions
+  };
 
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -43,19 +72,37 @@ export function Navbar() {
           </div>
 
           {/* Search Bar */}
-            <div className="flex items-center justify-between">
-          <div className="relative flex items-center mt- ml-4">
-            <input
-              type="text"
-              placeholder="Search location"
-              value={location}
-              onChange={handleLocationChange}
-              className="p-2 rounded-lg text-black w-full md:w-64 mr-2 pl-10 border border-black"
-            />
-            <div className="absolute left-2 text-gray-500">📍</div>
-          </div>
+          <div className="flex items-center justify-between">
+            <div className="relative flex items-center mt- ml-4">
+              <input
+                type="text"
+                placeholder="Search location"
+                value={location}
+                onChange={handleLocationChange}
+                className="p-2 rounded-lg text-black w-full md:w-64 mr-2 pl-10 border border-black"
+              />
+              <div className="absolute left-2 text-gray-500">📍</div>
+              {/* Search Icon (Right) */}
+              <div className="absolute right-2 text-gray-500 cursor-pointer">
+                <Search className="w-5 h-5 mr-2" />
+              </div>
+              {/* Suggestions Dropdown */}
+              {filteredLocations.length > 0 && (
+                <ul className="absolute top-12 left-0 bg-white border border-gray-300 rounded-lg w-full md:w-64 shadow-lg z-10">
+                  {filteredLocations.map((loc) => (
+                    <li
+                      key={loc}
+                      onClick={() => handleSelectLocation(loc)}
+                      className="p-2 hover:bg-gray-200 cursor-pointer"
+                    >
+                      {loc}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
-          {/* Desktop Nav Links */}
+            {/* Desktop Nav Links */}
             <div className="hidden md:flex space-x-6 md:ml-5">
               <Link href="#vehicle" className="hover:text-gray-300">
                 Vehicle

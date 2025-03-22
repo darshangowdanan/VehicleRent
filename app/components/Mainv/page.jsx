@@ -1,26 +1,58 @@
-"use client";  // Ensure this is the first line
+"use client";
 
-import React from 'react';
-import { VehicleCard } from '../VehicleCard/page';
-import { FilterSidebar } from '../FilterSidebar/page';
-import { useStore } from '../../../utils/store'; // Zustand store
-import { SlidersHorizontal, X } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { VehicleCard } from "../VehicleCard/page";
+import { FilterSidebar } from "../FilterSidebar/page";
+import { useStore } from "../../../utils/store"; // Zustand store
+import { SlidersHorizontal, X } from "lucide-react";
 
 export default function Mainv() {
-  const { filteredVehicles, isMobileFiltersOpen, setMobileFiltersOpen } = useStore();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { vehicles, filters, setFilters } = useStore(); // Ensure vehicles & filters exist
+  const [isMobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Sync Zustand filters with URL parameters on load
+  useEffect(() => {
+    setFilters({
+      type: searchParams.get("type") || "",
+      minPrice: searchParams.get("minPrice") || "",
+      maxPrice: searchParams.get("maxPrice") || "",
+      location: searchParams.get("location") || "",
+      showAvailableOnly: searchParams.get("showAvailableOnly") === "true",
+    });
+  }, [searchParams, setFilters]);
+
+  // Apply filtering based on Zustand filters
+  const filteredVehicles = vehicles.filter((vehicle) => {
+    if (filters.type && vehicle.type !== filters.type) return false;
+    
+    const minPrice = Number(filters.minPrice) || 0;
+    const maxPrice = Number(filters.maxPrice) || Infinity;
+    if (vehicle.price < minPrice || vehicle.price > maxPrice) return false;
+    
+    if (filters.location && vehicle.location !== filters.location) return false;
+    
+    if (filters.showAvailableOnly && !vehicle.available) return false;
+  
+    return true;
+  });
+  
+
 
   return (
-    <div className="flex-grow container mx-auto mt-5 px-4 py-8" id='vehicle'>
+    <div className="flex-grow container mx-auto mt-5 px-4 py-8" id="vehicle">
       {/* Mobile Filter Dialog */}
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300 lg:hidden ${
-          isMobileFiltersOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          isMobileFiltersOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setMobileFiltersOpen(false)}
       >
         <div
           className={`fixed right-0 top-0 h-full w-4/5 max-w-md bg-white shadow-xl transform transition-transform duration-300 ${
-            isMobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'
+            isMobileFiltersOpen ? "translate-x-0" : "translate-x-full"
           }`}
           onClick={(e) => e.stopPropagation()}
         >
@@ -57,9 +89,7 @@ export default function Mainv() {
           {/* Vehicle Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredVehicles.length > 0 ? (
-              filteredVehicles.map((vehicle) => (
-                <VehicleCard key={vehicle.id} vehicle={vehicle} />
-              ))
+              filteredVehicles.map((vehicle) => <VehicleCard key={vehicle.id} vehicle={vehicle} />)
             ) : (
               <p className="col-span-full text-center text-gray-500">No vehicles available</p>
             )}

@@ -1,20 +1,48 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useStore } from "../../../utils/store";
 
 export function FilterSidebar() {
   const { filters, setFilters } = useStore();
-  const locations = ["Downtown", "Airport", "City Center"];
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
+  const locations = ["Delhi", "Mumbai", "Bangalore","Kolkata","Chennai"];
+
+  // Sync Zustand state with URL query params on mount
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    setFilters({
+      type: params.get("type") || "",
+      minPrice: params.get("minPrice") || "",
+      maxPrice: params.get("maxPrice") || "",
+      location: params.get("location") || "",
+      showAvailableOnly: params.get("showAvailableOnly") === "true",
+    });
+  }, [searchParams, setFilters]);
+
+  // Handle filter changes and update URL query parameters
   const handleFilterChange = (key, value) => {
-    setFilters({ [key]: value });
+    const params = new URLSearchParams(window.location.search);
+  
+    if (!value || value === "") {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+  
+    setFilters((prev) => ({ ...prev, [key]: value })); // Update Zustand state
+    router.replace(`?${params.toString()}`, { scroll: false }); // Replace URL without navigation
   };
+  
 
   return (
     <div className="card p-4 sticky top-20 rounded-3xl bg-slate-300">
       <h2 className="text-lg font-semibold mb-4">Filters</h2>
       <div className="space-y-4">
+        
         {/* Vehicle Type Filter */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -22,8 +50,8 @@ export function FilterSidebar() {
           </label>
           <select
             className="w-full rounded-lg border-gray-200 p-2.5"
-            value={filters.type || ""}
-            onChange={(e) => handleFilterChange("type", e.target.value || null)}
+            value={filters.type}
+            onChange={(e) => handleFilterChange("type", e.target.value)}
           >
             <option value="">All Types</option>
             <option value="2-wheel">2 Wheel</option>
@@ -40,21 +68,19 @@ export function FilterSidebar() {
             <input
               type="number"
               placeholder="Min"
+              min={0}
               className="w-full rounded-lg border-gray-200 p-2.5"
-              value={filters.minPrice || ""}
-              onChange={(e) =>
-                handleFilterChange("minPrice", e.target.value ? Number(e.target.value) : null)
-              }
+              value={filters.minPrice}
+              onChange={(e) => handleFilterChange("minPrice", e.target.value || null)}
             />
             <span>-</span>
             <input
               type="number"
               placeholder="Max"
+              min={1}
               className="w-full rounded-lg border-gray-200 p-2.5"
-              value={filters.maxPrice || ""}
-              onChange={(e) =>
-                handleFilterChange("maxPrice", e.target.value ? Number(e.target.value) : null)
-              }
+              value={filters.maxPrice}
+              onChange={(e) => handleFilterChange("maxPrice", e.target.value || null)}
             />
           </div>
         </div>
@@ -66,8 +92,8 @@ export function FilterSidebar() {
           </label>
           <select
             className="w-full rounded-lg border-gray-200 p-2.5"
-            value={filters.location || ""}
-            onChange={(e) => handleFilterChange("location", e.target.value || null)}
+            value={filters.location}
+            onChange={(e) => handleFilterChange("location", e.target.value)}
           >
             <option value="">All Locations</option>
             {locations.map((location) => (
@@ -85,52 +111,12 @@ export function FilterSidebar() {
             id="available"
             className="rounded border-gray-200"
             checked={filters.showAvailableOnly}
-            onChange={(e) => handleFilterChange("showAvailableOnly", e.target.checked)}
+            onChange={(e) => handleFilterChange("showAvailableOnly", e.target.checked ? "true" : "")}
           />
           <label htmlFor="available" className="ml-2 text-sm text-gray-700">
             Show available only
           </label>
         </div>
-      </div>
-    </div>
-  );
-}
-
-export function VehicleList({ vehicles }) {
-  const [page, setPage] = useState(1);
-  const vehiclesPerPage = 6;
-  const startIndex = (page - 1) * vehiclesPerPage;
-  const displayedVehicles = vehicles.slice(startIndex, startIndex + vehiclesPerPage);
-
-  return (
-    <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {displayedVehicles.map((vehicle) => (
-          <div key={vehicle.id} className="p-4 border rounded-lg bg-white shadow">
-            <h3 className="text-lg font-semibold">{vehicle.name}</h3>
-            <p>Type: {vehicle.type}</p>
-            <p>Price: ${vehicle.price}</p>
-            <p>Location: {vehicle.location}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Pagination Controls */}
-      <div className="flex justify-between mt-4">
-        <button
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-          className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <button
-          disabled={startIndex + vehiclesPerPage >= vehicles.length}
-          onClick={() => setPage(page + 1)}
-          className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
       </div>
     </div>
   );

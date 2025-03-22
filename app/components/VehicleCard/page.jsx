@@ -20,7 +20,7 @@ export function VehicleCard({ vehicle }) {
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-xl font-bold text-gray-900">{vehicle.name}</h3>
           <span className="text-blue-600 font-semibold text-lg">
-          ₹{vehicle.price}/day
+            ₹{vehicle.price}/day
           </span>
         </div>
         <div className="flex items-center text-sm text-gray-500 mb-3">
@@ -54,4 +54,3 @@ VehicleCard.propTypes = {
     description: PropTypes.string.isRequired,
   }).isRequired,
 };
-
