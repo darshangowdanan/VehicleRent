@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState, useRef } from "react";
 import { Car, CalendarCheck, RotateCcw, CheckCircle2, ArrowRight } from "lucide-react";
 
