@@ -1,141 +1,81 @@
 "use client";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { db } from "@/firebase/config";
-import { collection, doc, setDoc } from "firebase/firestore";
 
-export default function UserForm() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const [submitted, setSubmitted] = useState(false);
+import React, { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { VehicleCard } from "../VehicleCard/page";
+import { FilterSidebar } from "../FilterSidebar/page";
+import { useStore } from "../../../utils/store";
+import { SlidersHorizontal, X } from "lucide-react";
+
+function MainComponent() {
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const { vehicles, filters, setFilters } = useStore();
+  const [isMobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const onSubmit = async (data) => {
-    try {
-      // Convert email into a valid Firestore document ID
-      const emailKey = data.email.replace(/[@.]/g, "_");
+  useEffect(() => {
+    setFilters({
+      type: searchParams.get("type") || "",
+      minPrice: searchParams.get("minPrice") || "",
+      maxPrice: searchParams.get("maxPrice") || "",
+      location: searchParams.get("location") || "",
+      showAvailableOnly: searchParams.get("showAvailableOnly") === "true",
+    });
+  }, [searchParams, setFilters]);
 
-      // Store data in Firestore with email as document ID
-      await setDoc(doc(db, "users", emailKey), data);
+  const filteredVehicles = vehicles.filter((vehicle) => {
+    if (filters.type && vehicle.type !== filters.type) return false;
 
-      // Store user data in localStorage
-      localStorage.setItem("user", JSON.stringify(data));
+    const minPrice = Number(filters.minPrice) || 0;
+    const maxPrice = Number(filters.maxPrice) || Infinity;
+    if (vehicle.price < minPrice || vehicle.price > maxPrice) return false;
 
-      setSubmitted(true);
-      setTimeout(() => router.push("/"), 2000);
-    } catch (error) {
-      console.error("Error adding user:", error);
-    }
-  };
+    if (filters.location && vehicle.location !== filters.location) return false;
+
+    if (filters.showAvailableOnly && !vehicle.available) return false;
+
+    return true;
+  });
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 shadow-lg rounded-lg w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
-          User Registration
-        </h2>
+    <div className="flex-grow container mx-auto mt-5 px-4 py-8" id="vehicle">
+      <div className="lg:flex gap-8 w-full">
+        <div className="hidden lg:block w-72 flex-shrink-0">
+          <div className="bg-white shadow-lg rounded-xl p-5 sticky top-24 ml-2">
+            <FilterSidebar />
+          </div>
+        </div>
 
-        {submitted ? (
-          <p className="text-green-600 text-center font-medium">
-            ✅ Form submitted successfully! Redirecting...
-          </p>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="block text-gray-700 font-medium">Name:</label>
-              <input
-                type="text"
-                {...register("name", { required: "Name is required" })}
-                className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Enter your name"
-              />
-              {errors.name && <p className="text-red-500 text-sm">⚠ {errors.name.message}</p>}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-gray-700 font-medium">Email:</label>
-              <input
-                type="email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email format" },
-                })}
-                className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Enter your email"
-              />
-              {errors.email && <p className="text-red-500 text-sm">⚠ {errors.email.message}</p>}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-gray-700 font-medium">Phone:</label>
-              <input
-                type="text"
-                {...register("phone", {
-                  required: "Phone is required",
-                  pattern: { value: /^\d{10}$/, message: "Must be a 10-digit number" },
-                })}
-                className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Enter your phone number"
-              />
-              {errors.phone && <p className="text-red-500 text-sm">⚠ {errors.phone.message}</p>}
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-gray-700 font-medium">Password:</label>
-              <input
-                type="password"
-                {...register("password", { required: "Password is required" })}
-                className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Enter your password"
-              />
-              {errors.password && <p className="text-red-500 text-sm">⚠ {errors.password.message}</p>}
-            </div>
-
-            {/* Role */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Role:</label>
-              <div className="flex gap-4">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="customer"
-                    {...register("role", { required: "Please select a role" })}
-                    className="mr-2"
-                  />
-                  Customer
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="owner"
-                    {...register("role", { required: "Please select a role" })}
-                    className="mr-2"
-                  />
-                  Vehicle Owner
-                </label>
-              </div>
-              {errors.role && <p className="text-red-500 text-sm">⚠ {errors.role.message}</p>}
-            </div>
-
-            {/* Submit Button */}
+        <div className="flex-grow">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">Available Vehicles</h1>
             <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200"
+              className="lg:hidden flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+              onClick={() => setMobileFiltersOpen(true)}
             >
-              Submit
+              <SlidersHorizontal className="w-5 h-5 mr-2" /> Filters
             </button>
-            <p className="text-center mt-4">
-              Already have an account?
-              <Link href="/Login" className="text-blue-600 hover:underline"> Login here</Link>
-            </p>
-          </form>
-        )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredVehicles.length > 0 ? (
+              filteredVehicles.map((vehicle) => <VehicleCard key={vehicle.id} vehicle={vehicle} />)
+            ) : (
+              <p className="col-span-full text-center text-gray-500">No vehicles available</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+// Wrap in Suspense
+export default function Mainv() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <MainComponent />
+    </Suspense>
+  );
+}
+
