@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 // import DeleteIcon from '@mui/icons-material/Delete';
 import Button from "@mui/material/Button";
 // import { Roboto } from 'next/font/google';
+import Link from "next/link";
 
 
 export function Main() {
@@ -40,8 +41,12 @@ export function Main() {
           <div className="ext-center md:text-left text-lg md:text-xl font-bold max-w-[90%] md:mt-40">
             ACCOMPANY YOUR JOURNEY WITH COMFORT
             <div className="mt-5">
-              <Button className="mr-11" variant="outlined">Know More</Button>
-              <Button variant="outlined" >
+              <Button className="mr-11" variant="outlined" onClick={() =>
+              document
+                .getElementById("about")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }>Know More</Button>
+              <Button variant="outlined" onClick={() => window.location.href = "https://www.youtube.com/watch?v=YOUR_VIDEO_ID"} >
                 Delete
               </Button>
             </div>
@@ -105,12 +110,14 @@ export function Main() {
             </div>
 
             {/* Submit Button */}
+            <Link href="#vehicle">
             <button
               type="submit"
               className="bg-primary text-white rounded-lg p-2 w-full md:w-auto text-sm md:text-base"
             >
               Search
             </button>
+            </Link>
           </form>
         </div>
       </div>

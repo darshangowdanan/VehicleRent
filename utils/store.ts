@@ -62,6 +62,26 @@ const mockVehicles: Vehicle[] = [
     available: true,
     description: "Compact SUV with premium features and comfort.",
   },
+  {
+    id: "8",
+    name: "Hyundai Creta",
+    type: "4-wheel",
+    price: 4000,
+    location: "Kolkata",
+    image: "https://images.unsplash.com/photo-1578561455211-90d636170f9e?auto=format&fit=crop&q=80",
+    available: true,
+    description: "Compact SUV with premium features and comfort.",
+  },
+  {
+    id: "7",
+    name: "Hyundai Creta",
+    type: "4-wheel",
+    price: 4000,
+    location: "Kolkata",
+    image: "https://images.unsplash.com/photo-1578561455211-90d636170f9e?auto=format&fit=crop&q=80",
+    available: true,
+    description: "Compact SUV with premium features and comfort.",
+  },
 ];
 
 interface StoreState {

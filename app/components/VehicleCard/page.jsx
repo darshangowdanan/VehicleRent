@@ -9,7 +9,7 @@ export function VehicleCard({ vehicle }) {
   return (
     <div
       className="card overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg rounded-2xl bg-white"
-      onClick={() => router.push(`/vehicle-details?id=${vehicle.id}`)}
+       onClick={() => router.push(`/vehicles/${vehicle.id}`)}
     >
       <img
         src={vehicle.image}
